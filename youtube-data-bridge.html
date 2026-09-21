@@ -162,8 +162,8 @@
           <div class="signal"><h2>ปลายทาง</h2><p>เลือกบัญชี Google ปลายทางของคุณในหน้าต่าง OAuth</p></div>
           <div class="dest-body">
             <label for="clientId">Google OAuth Client ID</label>
-            <input id="clientId" type="text" placeholder="ใส่ Client ID ของ Web application" autocomplete="off" />
-            <div class="micro" style="margin-top:7px">สร้างจาก Google Cloud Console และตั้ง Authorized JavaScript origin เป็น <span class="mono" id="originText"></span></div>
+            <input id="clientId" type="text" placeholder="Client ID ของเว็บนี้" autocomplete="off" />
+            <div class="micro" style="margin-top:7px">ตั้งค่าไว้สำหรับเว็บนี้แล้ว ผู้ใช้แต่ละคนจะเลือกบัญชีปลายทางของตัวเองผ่าน Google OAuth · Authorized JavaScript origin: <span class="mono" id="originText"></span></div>
             <div id="oauthState" class="oauth-state">ยังไม่ได้เชื่อมต่อบัญชีปลายทาง</div>
             <div class="button-row"><button id="authBtn" class="button" type="button">เชื่อมต่อด้วย Google OAuth</button><button id="signoutBtn" class="button secondary" type="button" disabled>ยกเลิกสิทธิ์</button></div>
 
@@ -192,7 +192,9 @@
 
   <script>
     const state = { watch: [], searches: [], subscriptions: [], token: null, tokenClient: null };
+    const DEFAULT_CLIENT_ID = '1098479236501-tl1kirmto5r2a7f67292kmt4ncj5i4rf.apps.googleusercontent.com';
     const $ = (id) => document.getElementById(id);
+    $('clientId').value = DEFAULT_CLIENT_ID;
     const logEl = $('log');
     const thaiMonths = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
     const htmlDecode = (s) => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
