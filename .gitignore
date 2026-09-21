@@ -3,3 +3,5 @@ youtube-takeout-data.json
 Takeout/
 *.zip
 .vercel/
+
+.vercel
