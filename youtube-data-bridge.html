@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YouTube Data Bridge</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap');
+    :root {
+      --ink: #18211d;
+      --muted: #66736b;
+      --paper: #f4f1e8;
+      --paper-2: #ebe7da;
+      --panel: rgba(255, 253, 245, .83);
+      --line: #cfd4c8;
+      --acid: #d7ef5a;
+      --acid-dark: #8aa323;
+      --rust: #c96e4a;
+      --blue: #94d8d7;
+      --white: #fffdf6;
+      --shadow: 0 24px 80px rgba(33, 46, 38, .12);
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: 'Noto Sans Thai', sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(215,239,90,.38), transparent 28rem),
+        radial-gradient(circle at 100% 22%, rgba(148,216,215,.25), transparent 26rem),
+        linear-gradient(135deg, rgba(255,255,255,.3), transparent 42%),
+        var(--paper);
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; opacity: .35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+    .shell { max-width: 1260px; margin: 0 auto; padding: 28px 28px 72px; position: relative; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; margin-bottom: 42px; }
+    .eyebrow { font: 600 12px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--acid-dark); margin-bottom: 16px; }
+    h1 { font-size: clamp(36px, 6vw, 78px); line-height: .98; letter-spacing: -.06em; max-width: 760px; margin: 0; font-weight: 800; }
+    h1 em { font-style: normal; color: var(--rust); }
+    .header-note { max-width: 290px; border-left: 2px solid var(--ink); padding-left: 16px; margin-top: 8px; font-size: 14px; line-height: 1.65; color: var(--muted); }
+    .rule { height: 1px; background: var(--ink); opacity: .18; margin: 0 0 22px; }
+    .stepbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .step { border-top: 3px solid var(--line); padding-top: 9px; color: var(--muted); font: 500 12px/1.4 'IBM Plex Mono', monospace; }
+    .step.active { border-color: var(--rust); color: var(--ink); }
+    .step strong { display: block; font-size: 17px; margin-bottom: 4px; font-family: 'Noto Sans Thai', sans-serif; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: 18px; align-items: start; }
+    .panel { background: var(--panel); border: 1px solid rgba(24,33,29,.16); box-shadow: var(--shadow); backdrop-filter: blur(12px); }
+    .panel.pad { padding: 24px; }
+    .panel-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 22px; }
+    h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
+    h3 { margin: 0 0 10px; font-size: 15px; }
+    .micro { color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .drop {
+      min-height: 190px; border: 1px dashed rgba(24,33,29,.38); background: linear-gradient(135deg, rgba(215,239,90,.19), rgba(148,216,215,.11));
+      display: grid; place-items: center; text-align: center; padding: 26px; position: relative; overflow: hidden;
+    }
+    .drop::after { content: 'TAKEOUT'; position: absolute; right: -10px; bottom: -16px; font: 800 78px/.8 'IBM Plex Mono'; color: rgba(24,33,29,.06); transform: rotate(-7deg); }
+    .drop strong { display: block; font-size: 18px; margin-bottom: 8px; }
+    input[type=file] { display: none; }
+    .button { border: 1px solid var(--ink); background: var(--ink); color: var(--white); padding: 11px 15px; font: 600 13px 'Noto Sans Thai'; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; }
+    .button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 5px 5px 0 var(--acid); }
+    .button.secondary { background: transparent; color: var(--ink); }
+    .button.acid { background: var(--acid); color: var(--ink); border-color: var(--ink); }
+    .button:disabled { opacity: .42; cursor: not-allowed; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+    .status { display: flex; gap: 10px; align-items: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: 0 0 auto; }
+    .dot.ok { background: var(--acid-dark); box-shadow: 0 0 0 4px rgba(138,163,35,.15); }
+    .dot.warn { background: var(--rust); }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 18px 0; }
+    .stat { padding: 15px; background: var(--paper-2); border: 1px solid var(--line); }
+    .stat strong { display: block; font: 600 28px/1 'IBM Plex Mono'; letter-spacing: -.08em; margin-bottom: 7px; }
+    .stat span { color: var(--muted); font-size: 11px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; background: var(--white); border: 1px solid var(--line); font-size: 12px; }
+    .chip b { color: var(--rust); font-family: 'IBM Plex Mono'; }
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+    .list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+    .list li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12px; line-height: 1.45; }
+    .list li span:first-child { overflow-wrap: anywhere; }
+    .count { color: var(--rust); font: 600 11px 'IBM Plex Mono'; white-space: nowrap; }
+    .destination { position: sticky; top: 18px; }
+    .destination .panel { overflow: hidden; }
+    .signal { padding: 19px 22px; background: var(--ink); color: var(--white); position: relative; }
+    .signal::after { content: '01'; position: absolute; right: 22px; top: 15px; font: 500 12px 'IBM Plex Mono'; color: var(--acid); }
+    .signal h2 { color: var(--acid); }
+    .signal p { color: rgba(255,253,246,.7); margin: 7px 34px 0 0; font-size: 12px; line-height: 1.5; }
+    .dest-body { padding: 22px; }
+    label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
+    input[type=text], input[type=number] { width: 100%; padding: 11px 12px; border: 1px solid var(--line); background: var(--white); color: var(--ink); font: 12px 'IBM Plex Mono'; outline: none; }
+    input:focus { border-color: var(--rust); box-shadow: 0 0 0 3px rgba(201,110,74,.12); }
+    .oauth-state { margin: 12px 0 17px; padding: 11px; background: var(--paper-2); font-size: 12px; line-height: 1.5; }
+    .action { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
+    .action h3 { display: flex; justify-content: space-between; align-items: center; }
+    .tag { font: 500 10px 'IBM Plex Mono'; color: var(--acid-dark); background: rgba(215,239,90,.4); padding: 4px 6px; }
+    .warning { padding: 12px; background: #fff0e9; border-left: 3px solid var(--rust); color: #70331f; font-size: 12px; line-height: 1.55; margin-top: 14px; }
+    .good { padding: 12px; background: rgba(215,239,90,.28); border-left: 3px solid var(--acid-dark); font-size: 12px; line-height: 1.55; margin-top: 14px; }
+    .log { max-height: 190px; overflow: auto; margin-top: 16px; padding: 12px; background: #17201c; color: #d7ef5a; font: 11px/1.65 'IBM Plex Mono'; white-space: pre-wrap; }
+    footer { margin-top: 24px; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    footer a { color: var(--ink); }
+    .empty { color: var(--muted); font-size: 13px; padding: 15px 0; }
+    @media (max-width: 860px) { header { display: block; } .header-note { margin-top: 22px; max-width: none; } .grid { grid-template-columns: 1fr; } .destination { position: static; } }
+    @media (max-width: 520px) { .shell { padding: 18px 15px 50px; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } .stepbar { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">local tool / youtube only</div>
+        <h1>ย้ายสิ่งที่คุณดู<br />ให้เป็น <em>สัญญาณ</em></h1>
+      </div>
+      <p class="header-note">เครื่องมือช่วยย้ายแบบที่ YouTube อนุญาตจริง ไม่หลอกระบบ ไม่ขอรหัสผ่าน และไม่แตะ Gmail หรือ Drive</p>
+    </header>
+
+    <div class="rule"></div>
+    <div class="stepbar">
+      <div class="step active"><strong>01 · อ่านข้อมูล</strong>เลือกโฟลเดอร์ Takeout จากเครื่อง</div>
+      <div class="step"><strong>02 · ตรวจความสนใจ</strong>ดูสิ่งที่จะนำไปใช้ก่อนทำรายการ</div>
+      <div class="step"><strong>03 · ปลายทาง</strong>OAuth + เฉพาะสิ่งที่ API รองรับ</div>
+    </div>
+
+    <div class="grid">
+      <section class="panel pad">
+        <div class="panel-head">
+          <div><h2>แฟ้มข้อมูลต้นทาง</h2><div class="micro">อ่านในเบราว์เซอร์ของคุณเท่านั้น</div></div>
+          <div class="mono micro" id="sourceLabel">ยังไม่ได้เลือก</div>
+        </div>
+        <div class="drop">
+          <div>
+            <strong>วางโฟลเดอร์ Takeout ตรงนี้</strong>
+            <div class="micro">เลือกโฟลเดอร์ที่มี “YouTube และ YouTube Music”<br />ไฟล์จะไม่ถูกอัปโหลดออกจากเครื่อง</div>
+            <label class="button acid" for="takeoutFiles" style="display:inline-block;margin-top:16px;cursor:pointer">เลือกโฟลเดอร์ Takeout</label>
+            <input id="takeoutFiles" type="file" webkitdirectory directory multiple />
+            <div class="micro" style="margin-top:8px">เว็บจะอ่านไฟล์ในเบราว์เซอร์ของคุณเท่านั้น และไม่อัปโหลดไฟล์ Takeout ไปที่เซิร์ฟเวอร์</div>
+          </div>
+        </div>
+        <div class="status"><span class="dot" id="parseDot"></span><span id="parseStatus">รอไฟล์ต้นทาง</span></div>
+        <div class="stats">
+          <div class="stat"><strong id="watchCount">—</strong><span>รายการดูที่อ่านได้</span></div>
+          <div class="stat"><strong id="searchCount">—</strong><span>คำค้นหา</span></div>
+          <div class="stat"><strong id="subCount">—</strong><span>ช่องที่ติดตาม</span></div>
+        </div>
+        <div id="insights" class="empty">เมื่อเลือกไฟล์แล้ว สรุปความสนใจจะปรากฏตรงนี้</div>
+        <div class="columns">
+          <div><h3>วิดีโอที่พบซ้ำบ่อย</h3><ul id="watchList" class="list"><li class="empty">ยังไม่มีข้อมูล</li></ul></div>
+          <div><h3>คำค้นหาที่พบซ้ำบ่อย</h3><ul id="searchList" class="list"><li class="empty">ยังไม่มีข้อมูล</li></ul></div>
+        </div>
+      </section>
+
+      <aside class="destination">
+        <div class="panel">
+          <div class="signal"><h2>ปลายทาง</h2><p>เลือกบัญชี Google ปลายทางของคุณในหน้าต่าง OAuth</p></div>
+          <div class="dest-body">
+            <label for="clientId">Google OAuth Client ID</label>
+            <input id="clientId" type="text" placeholder="ใส่ Client ID ของ Web application" autocomplete="off" />
+            <div class="micro" style="margin-top:7px">สร้างจาก Google Cloud Console และตั้ง Authorized JavaScript origin เป็น <span class="mono" id="originText"></span></div>
+            <div id="oauthState" class="oauth-state">ยังไม่ได้เชื่อมต่อบัญชีปลายทาง</div>
+            <div class="button-row"><button id="authBtn" class="button" type="button">เชื่อมต่อด้วย Google OAuth</button><button id="signoutBtn" class="button secondary" type="button" disabled>ยกเลิกสิทธิ์</button></div>
+
+            <div class="action">
+              <h3>สมัครช่องเดิม <span class="tag">รองรับโดย API</span></h3>
+              <p class="micro">ใช้รายชื่อช่องจาก CSV เพื่อสมัครในบัญชีปลายทาง ไม่แตะประวัติการดู</p>
+              <button id="subscribeBtn" class="button acid" type="button" disabled>สมัครช่องที่พบทั้งหมด</button>
+            </div>
+
+            <div class="action">
+              <h3>เก็บวิดีโอเดิมเป็นเพลย์ลิสต์ <span class="tag">ไม่ใช่ history</span></h3>
+              <p class="micro">สร้างเพลย์ลิสต์ส่วนตัวในปลายทางเพื่อเปิดดูรายการเดิมได้ YouTube จะไม่บันทึกเป็นประวัติย้อนหลัง</p>
+              <label for="playlistLimit" style="margin-top:12px">จำนวนวิดีโอสูงสุด</label>
+              <input id="playlistLimit" type="number" min="1" max="150" value="50" />
+              <button id="playlistBtn" class="button acid" type="button" disabled style="margin-top:10px">สร้างเพลย์ลิสต์ส่วนตัว</button>
+            </div>
+
+            <div class="warning"><b>ทำไม่ได้โดย API:</b> เขียน Watch history หรือ Search history ย้อนหลังเข้าไปในบัญชีใหม่โดยตรง ดังนั้นปุ่มด้านบนจะไม่แอบทำสิ่งนั้น</div>
+            <div id="log" class="log" hidden></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <footer><span>ข้อมูล Takeout อยู่ในเครื่อง · OAuth token อยู่ในหน่วยความจำของหน้านี้</span><span><a href="https://support.google.com/youtube/answer/3056283" target="_blank" rel="noreferrer">ข้อจำกัดทางการของ YouTube</a> · <a href="https://developers.google.com/youtube/v3/docs" target="_blank" rel="noreferrer">YouTube Data API</a></span></footer>
+  </main>
+
+  <script>
+    const state = { watch: [], searches: [], subscriptions: [], token: null, tokenClient: null };
+    const $ = (id) => document.getElementById(id);
+    const logEl = $('log');
+    const thaiMonths = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
+    const htmlDecode = (s) => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const esc = (s) => String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    function writeLog(message) { logEl.hidden = false; logEl.textContent += `[${new Date().toLocaleTimeString('th-TH')}] ${message}\n`; logEl.scrollTop = logEl.scrollHeight; }
+    function parseThaiDate(text) {
+      const m = text.match(/(\d{1,2})\s+([^\s]+)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+      if (!m) return null;
+      const month = thaiMonths[m[2]];
+      if (month === undefined) return null;
+      return new Date(Number(m[3]) - 543, month, Number(m[1]), Number(m[4]), Number(m[5]), Number(m[6]));
+    }
+    function parseHistoryHtml(text, kind) {
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      const entries = [];
+      doc.querySelectorAll('.outer-cell').forEach(card => {
+        const body = card.querySelector('.content-cell.mdl-cell--6-col');
+        if (!body) return;
+        const links = [...body.querySelectorAll('a')];
+        if (kind === 'watch') {
+          const link = links.find(a => /youtube\.com\/watch\?v=|youtu\.be\//.test(a.href));
+          if (!link) return;
+          const url = new URL(link.href);
+          const id = url.searchParams.get('v') || url.pathname.split('/').filter(Boolean).pop();
+          if (!id) return;
+          entries.push({ id, title: norm(link.textContent), date: parseThaiDate(body.textContent) });
+        } else {
+          const link = links.find(a => /youtube\.com\/results\?/.test(a.href));
+          if (!link) return;
+          let query = '';
+          try { query = new URL(link.href).searchParams.get('search_query') || ''; } catch (_) {}
+          query = norm(htmlDecode(query.replace(/\+/g, ' ')) || link.textContent);
+          if (query && query !== 'ที่นี่') entries.push({ query, date: parseThaiDate(body.textContent) });
+        }
+      });
+      return entries;
+    }
+    function parseCsv(text) {
+      const rows = []; let row = []; let cell = ''; let quote = false;
+      for (let i=0;i<text.length;i++) { const c=text[i], n=text[i+1];
+        if (c === '"' && quote && n === '"') { cell += '"'; i++; continue; }
+        if (c === '"') { quote = !quote; continue; }
+        if (c === ',' && !quote) { row.push(cell); cell=''; continue; }
+        if ((c === '\n' || c === '\r') && !quote) { if (c==='\r' && n==='\n') i++; row.push(cell); if(row.some(Boolean)) rows.push(row); row=[]; cell=''; continue; }
+        cell += c;
+      }
+      if (cell || row.length) { row.push(cell); rows.push(row); }
+      return rows;
+    }
+    function parseSubscriptions(text) {
+      const rows = parseCsv(text); if (rows.length < 2) return [];
+      return rows.slice(1).map(r => ({ id: r[0], url: r[1], name: norm(r[2]) })).filter(x => x.id && x.name);
+    }
+    function groupTop(items, key, limit=8) {
+      const map = new Map(); items.forEach(x => { const value = norm(x[key]); if(value) map.set(value, (map.get(value)||0)+1); });
+      return [...map.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])).slice(0,limit);
+    }
+    function renderList(id, pairs) {
+      $(id).innerHTML = pairs.length ? pairs.map(([name,count]) => `<li><span>${esc(name)}</span><span class="count">${count}x</span></li>`).join('') : '<li class="empty">ไม่มีรายการ</li>';
+    }
+    const interestRules = [
+      ['เพลง / ศิลปิน', /olivia|ariana|sza|taylor|music|เพลง|song|the cure|clean bandit|anne-marie|self control|her\b/i],
+      ['เกม / เกมเพลย์', /ragnarok|palworld|game|gaming|เกม|creature-catching|grow a garden|fish it|minecraft/i],
+      ['อนิเมะ / มังงะ', /anime|อนิเมะ|manga|มังงะ|สปอย|cookie run/i],
+      ['งานสร้างสรรค์ / AI', /illustrator|claude|google cloud|ai|หาเงิน|ออกแบบ|digital/i],
+      ['ความรู้ / ข่าว', /news|ข่าว|คดี|วิธีใช้|tutorial|เรียน|สอบ|o-net/i]
+    ];
+    function renderInsights() {
+      const corpus = [...state.watch.map(x=>x.title), ...state.searches.map(x=>x.query)].join(' ');
+      const hits = interestRules.map(([label,re]) => [label, (corpus.match(new RegExp(re.source,'gi'))||[]).length]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
+      $('insights').innerHTML = hits.length ? `<h3>สัญญาณความสนใจจากข้อมูลเก่า</h3><div class="chips">${hits.map(([label,n])=>`<span class="chip">${esc(label)} <b>${n}</b></span>`).join('')}</div><div class="good">นี่เป็นการสรุปจากไฟล์ในเครื่อง ไม่ใช่โปรไฟล์ลับของ Google และยังไม่ถูกส่งไปยังบัญชีปลายทาง</div>` : '<div class="empty">ยังสรุปหมวดความสนใจไม่ได้จากไฟล์ที่เลือก</div>';
+    }
+    function renderState() {
+      $('watchCount').textContent = state.watch.length.toLocaleString('th-TH');
+      $('searchCount').textContent = state.searches.length.toLocaleString('th-TH');
+      $('subCount').textContent = state.subscriptions.length.toLocaleString('th-TH');
+      renderList('watchList', groupTop(state.watch, 'title'));
+      renderList('searchList', groupTop(state.searches, 'query'));
+      renderInsights();
+      $('subscribeBtn').disabled = !state.token || !state.subscriptions.length;
+      $('playlistBtn').disabled = !state.token || !state.watch.length;
+    }
+    async function readFiles(files) {
+      state.watch=[]; state.searches=[]; state.subscriptions=[];
+      for (const file of files) {
+        const lower = file.name.toLowerCase();
+        if (lower.endsWith('.html')) {
+          const text = await file.text();
+          if (lower.includes('watch') || lower.includes('การดู')) state.watch.push(...parseHistoryHtml(text,'watch'));
+          if (lower.includes('search') || lower.includes('ค้นหา')) state.searches.push(...parseHistoryHtml(text,'search'));
+        } else if (lower.endsWith('.csv') && (lower.includes('subscription') || lower.includes('การติดตาม'))) {
+          state.subscriptions.push(...parseSubscriptions(await file.text()));
+        }
+      }
+      const seen = new Set(); state.watch = state.watch.filter(x => { const k=`${x.id}|${x.date?.toISOString()||''}`; if(seen.has(k)) return false; seen.add(k); return true; });
+      const subSeen = new Set(); state.subscriptions = state.subscriptions.filter(x => !subSeen.has(x.id) && subSeen.add(x.id));
+      $('parseDot').className='dot ok'; $('parseStatus').textContent=`อ่านเสร็จแล้ว · ${files.length} ไฟล์`; $('sourceLabel').textContent='LOCAL TAKEOUT';
+      renderState();
+    }
+    $('takeoutFiles').addEventListener('change', e => readFiles([...e.target.files]).catch(err => { $('parseDot').className='dot warn'; $('parseStatus').textContent='อ่านไฟล์ไม่สำเร็จ'; writeLog(err.message); }));
+    $('originText').textContent = window.location.origin;
+
+    function apiHeaders() { return { Authorization: `Bearer ${state.token}`, 'Content-Type': 'application/json' }; }
+    async function yt(path, options={}) { const r=await fetch(`https://www.googleapis.com/youtube/v3${path}`, { ...options, headers: { ...apiHeaders(), ...(options.headers||{}) }}); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error?.message || `YouTube API ${r.status}`); return data; }
+    async function findPrivatePlaylist(title) {
+      let pageToken = '';
+      do {
+        const query = `/playlists?part=snippet,status&mine=true&maxResults=50${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
+        const data = await yt(query);
+        const found = (data.items || []).find(x => x.snippet?.title === title && x.status?.privacyStatus === 'private');
+        if (found) return found;
+        pageToken = data.nextPageToken || '';
+      } while (pageToken);
+      return null;
+    }
+    async function listPlaylistVideoIds(playlistId) {
+      const ids = new Set(); let pageToken = '';
+      do {
+        const query = `/playlistItems?part=snippet&playlistId=${encodeURIComponent(playlistId)}&maxResults=50${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
+        const data = await yt(query);
+        for (const item of data.items || []) { const id = item.snippet?.resourceId?.videoId; if (id) ids.add(id); }
+        pageToken = data.nextPageToken || '';
+      } while (pageToken);
+      return ids;
+    }
+    function enableActions() { $('signoutBtn').disabled=false; $('subscribeBtn').disabled=!state.subscriptions.length; $('playlistBtn').disabled=!state.watch.length; }
+    $('authBtn').addEventListener('click', () => {
+      const clientId=$('clientId').value.trim();
+      if(!clientId) { $('oauthState').textContent='กรุณาใส่ OAuth Client ID ก่อน'; return; }
+      if(!window.google?.accounts?.oauth2) { $('oauthState').textContent='กำลังโหลด Google OAuth ลองอีกครั้ง'; return; }
+      state.tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/youtube.force-ssl', callback: (response) => {
+        if(response.error) { $('oauthState').textContent='เชื่อมต่อไม่สำเร็จ: '+response.error; return; }
+        state.token=response.access_token; $('oauthState').textContent='เชื่อมต่อแล้ว · ใช้ OAuth ในหน่วยความจำของหน้านี้เท่านั้น'; $('authBtn').textContent='เชื่อมต่อแล้ว'; enableActions(); writeLog('เชื่อมต่อบัญชีปลายทางสำเร็จ');
+      }}); state.tokenClient.requestAccessToken({ prompt: 'consent' });
+    });
+    $('signoutBtn').addEventListener('click', () => { if(state.token && window.google?.accounts?.oauth2) google.accounts.oauth2.revoke(state.token, () => {}); state.token=null; $('oauthState').textContent='ยกเลิกสิทธิ์แล้ว'; $('signoutBtn').disabled=true; renderState(); writeLog('ยกเลิก OAuth token แล้ว'); });
+    $('subscribeBtn').addEventListener('click', async () => {
+      if(!state.token || !state.subscriptions.length) return;
+      if(!confirm(`จะส่งคำขอสมัคร ${state.subscriptions.length} ช่องไปยังบัญชีปลายทาง คุณยืนยันหรือไม่?`)) return;
+      $('subscribeBtn').disabled=true; let done=0, failed=0;
+      for (const sub of state.subscriptions) { try { await yt('/subscriptions?part=snippet',{method:'POST',body:JSON.stringify({snippet:{resourceId:{kind:'youtube#channel',channelId:sub.id}}})}); done++; writeLog(`สมัครแล้ว: ${sub.name}`); } catch(e) { failed++; writeLog(`ข้าม ${sub.name}: ${e.message}`); } }
+      writeLog(`จบการสมัครช่อง · สำเร็จ ${done} · ข้าม/ผิดพลาด ${failed}`); $('subscribeBtn').disabled=false;
+    });
+    $('playlistBtn').addEventListener('click', async () => {
+      if(!state.token || !state.watch.length) return;
+      const limit=Math.min(150, Math.max(1, Number($('playlistLimit').value)||50));
+      if(!confirm(`จะสร้างเพลย์ลิสต์ส่วนตัวและเพิ่มวิดีโอ ${limit} รายการ (ไม่ใช่ Watch history) ยืนยันหรือไม่?`)) return;
+      $('playlistBtn').disabled=true;
+      try {
+        const title='ประวัติการดูเดิม · เก็บจาก Takeout';
+        let playlist=await findPrivatePlaylist(title);
+        if (playlist) writeLog(`พบเพลย์ลิสต์เดิมแล้ว · ใช้ต่อโดยไม่สร้างซ้ำ · ${playlist.id}`);
+        else playlist=await yt('/playlists?part=snippet,status',{method:'POST',body:JSON.stringify({snippet:{title,description:'สร้างโดย YouTube Data Bridge จาก Google Takeout ของเจ้าของบัญชี',},status:{privacyStatus:'private'}})});
+        const existing=await listPlaylistVideoIds(playlist.id);
+        let done=0; const ids=[...new Set(state.watch.map(x=>x.id))].slice(0,limit).filter(id=>!existing.has(id));
+        for(const id of ids){ try { await yt('/playlistItems?part=snippet',{method:'POST',body:JSON.stringify({snippet:{playlistId:playlist.id,resourceId:{kind:'youtube#video',videoId:id}}})}); done++; writeLog(`เพิ่มแล้ว ${done}/${ids.length}: ${id}`); } catch(e){ writeLog(`เพิ่มวิดีโอ ${id} ไม่สำเร็จ: ${e.message}`); } }
+        writeLog(`เสร็จแล้ว · เพิ่มใหม่ ${done} รายการ · มีอยู่เดิม ${existing.size} รายการ · ${playlist.id}`); $('playlistBtn').disabled=false;
+      } catch(e) { writeLog('สร้างเพลย์ลิสต์ไม่สำเร็จ: '+e.message); $('playlistBtn').disabled=false; }
+    });
+  </script>
+</body>
+</html>

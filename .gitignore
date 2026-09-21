@@ -1,0 +1,5 @@
+# Never publish personal Google Takeout exports.
+youtube-takeout-data.json
+Takeout/
+*.zip
+.vercel/

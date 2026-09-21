@@ -1,0 +1,5 @@
+# Keep personal exports out of Vercel deployments.
+youtube-takeout-data.json
+Takeout/
+*.zip
+README-youtube-data-bridge.md
