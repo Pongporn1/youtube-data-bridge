@@ -6,127 +6,131 @@
   <title>YouTube Data Bridge</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
     :root {
-      --ink: #18211d;
-      --muted: #66736b;
-      --paper: #f4f1e8;
-      --paper-2: #ebe7da;
-      --panel: rgba(255, 253, 245, .83);
-      --line: #cfd4c8;
-      --acid: #d7ef5a;
-      --acid-dark: #8aa323;
-      --rust: #c96e4a;
-      --blue: #94d8d7;
-      --white: #fffdf6;
-      --shadow: 0 24px 80px rgba(33, 46, 38, .12);
+      --ink: #101b3d;
+      --muted: #5e667c;
+      --paper: #f2f0e8;
+      --paper-2: #e7e4da;
+      --panel: #f9f7f0;
+      --line: #b9bdc7;
+      --red: #ff3b30;
+      --yellow: #ffd84d;
+      --cyan: #67d4dc;
+      --white: #fffdf7;
+      --shadow: 10px 10px 0 rgba(16,27,61,.14);
     }
     * { box-sizing: border-box; }
     html { background: var(--paper); }
     body {
       margin: 0;
       color: var(--ink);
-      font-family: 'Noto Sans Thai', sans-serif;
-      background:
-        radial-gradient(circle at 8% 0%, rgba(215,239,90,.38), transparent 28rem),
-        radial-gradient(circle at 100% 22%, rgba(148,216,215,.25), transparent 26rem),
-        linear-gradient(135deg, rgba(255,255,255,.3), transparent 42%),
-        var(--paper);
+      font-family: 'IBM Plex Sans Thai', sans-serif;
+      background: var(--paper);
       min-height: 100vh;
     }
     body::before {
-      content: '';
-      position: fixed; inset: 0; pointer-events: none; opacity: .35;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
-      mix-blend-mode: multiply;
+      content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .07;
+      background-image: linear-gradient(var(--ink) 1px, transparent 1px), linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+      background-size: 32px 32px;
     }
-    .shell { max-width: 1260px; margin: 0 auto; padding: 28px 28px 72px; position: relative; }
-    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; margin-bottom: 42px; }
-    .eyebrow { font: 600 12px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--acid-dark); margin-bottom: 16px; }
-    h1 { font-size: clamp(36px, 6vw, 78px); line-height: .98; letter-spacing: -.06em; max-width: 760px; margin: 0; font-weight: 800; }
-    h1 em { font-style: normal; color: var(--rust); }
-    .header-note { max-width: 290px; border-left: 2px solid var(--ink); padding-left: 16px; margin-top: 8px; font-size: 14px; line-height: 1.65; color: var(--muted); }
-    .rule { height: 1px; background: var(--ink); opacity: .18; margin: 0 0 22px; }
-    .stepbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-    .step { border-top: 3px solid var(--line); padding-top: 9px; color: var(--muted); font: 500 12px/1.4 'IBM Plex Mono', monospace; }
-    .step.active { border-color: var(--rust); color: var(--ink); }
-    .step strong { display: block; font-size: 17px; margin-bottom: 4px; font-family: 'Noto Sans Thai', sans-serif; }
-    .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: 18px; align-items: start; }
-    .panel { background: var(--panel); border: 1px solid rgba(24,33,29,.16); box-shadow: var(--shadow); backdrop-filter: blur(12px); }
-    .panel.pad { padding: 24px; }
-    .panel-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 22px; }
-    h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
-    h3 { margin: 0 0 10px; font-size: 15px; }
+    .shell { max-width: 1380px; margin: 0 auto; padding: 0 28px 70px; position: relative; }
+    header { min-height: 300px; display: grid; grid-template-columns: 1fr 330px; gap: 60px; align-items: end; padding: 70px 0 38px; border-bottom: 8px solid var(--ink); position: relative; }
+    header::before { content: 'YT / BRIDGE'; position: absolute; top: 22px; left: 0; font: 700 13px 'IBM Plex Mono'; letter-spacing: .18em; }
+    header::after { content: 'LOCAL-FIRST  ·  NO PASSWORD  ·  API SAFE'; position: absolute; top: 22px; right: 0; font: 500 10px 'IBM Plex Mono'; letter-spacing: .08em; }
+    .eyebrow { display: inline-block; font: 600 11px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--white); background: var(--red); padding: 7px 10px; margin-bottom: 18px; }
+    h1 { font-family: 'Chakra Petch', sans-serif; font-size: clamp(48px, 7.2vw, 102px); line-height: .84; letter-spacing: -.065em; max-width: 930px; margin: 0; font-weight: 700; }
+    h1 em { font-style: normal; color: var(--red); }
+    .header-note { margin: 0 0 4px; border-top: 1px solid var(--ink); padding-top: 14px; font-size: 14px; line-height: 1.7; color: var(--muted); }
+    .rule { display: none; }
+    .stepbar { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--ink); margin-bottom: 26px; }
+    .step { min-height: 84px; padding: 17px 18px; border-right: 1px solid var(--ink); color: var(--muted); font: 500 11px/1.5 'IBM Plex Mono', monospace; background: rgba(249,247,240,.55); }
+    .step:first-child { border-left: 1px solid var(--ink); }
+    .step.active { color: var(--ink); background: var(--yellow); }
+    .step strong { display: block; font: 600 18px/1.2 'Chakra Petch', sans-serif; margin-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(380px, .75fr); gap: 26px; align-items: start; }
+    .panel { background: var(--panel); border: 1px solid var(--ink); box-shadow: var(--shadow); }
+    .panel.pad { padding: 28px; }
+    .panel-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--ink); }
+    h2 { margin: 0; font: 700 26px/1.1 'Chakra Petch', sans-serif; letter-spacing: -.025em; }
+    h3 { margin: 0 0 10px; font: 600 16px/1.35 'Chakra Petch', sans-serif; }
     .micro { color: var(--muted); font-size: 12px; line-height: 1.55; }
     .mono { font-family: 'IBM Plex Mono', monospace; }
     .drop {
-      min-height: 190px; border: 1px dashed rgba(24,33,29,.38); background: linear-gradient(135deg, rgba(215,239,90,.19), rgba(148,216,215,.11));
+      min-height: 230px; border: 1px dashed var(--ink); background: var(--white);
       display: grid; place-items: center; text-align: center; padding: 26px; position: relative; overflow: hidden;
     }
-    .drop::after { content: 'TAKEOUT'; position: absolute; right: -10px; bottom: -16px; font: 800 78px/.8 'IBM Plex Mono'; color: rgba(24,33,29,.06); transform: rotate(-7deg); }
-    .drop strong { display: block; font-size: 18px; margin-bottom: 8px; }
+    .drop::before { content: '↓'; position: absolute; left: 20px; top: 10px; font: 400 70px/1 'Chakra Petch'; color: var(--red); }
+    .drop::after { content: 'LOCAL / 001'; position: absolute; right: 16px; bottom: 12px; font: 600 10px 'IBM Plex Mono'; color: var(--muted); }
+    .drop strong { display: block; font: 600 21px 'Chakra Petch'; margin-bottom: 8px; }
     input[type=file] { display: none; }
-    .button { border: 1px solid var(--ink); background: var(--ink); color: var(--white); padding: 11px 15px; font: 600 13px 'Noto Sans Thai'; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; }
-    .button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 5px 5px 0 var(--acid); }
+    .button { border: 1px solid var(--ink); background: var(--ink); color: var(--white); padding: 12px 16px; font: 600 13px 'IBM Plex Sans Thai'; cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s; border-radius: 0; }
+    .button:hover:not(:disabled) { transform: translate(-3px,-3px); box-shadow: 4px 4px 0 var(--red); }
     .button.secondary { background: transparent; color: var(--ink); }
-    .button.acid { background: var(--acid); color: var(--ink); border-color: var(--ink); }
+    .button.acid { background: var(--yellow); color: var(--ink); border-color: var(--ink); }
     .button:disabled { opacity: .42; cursor: not-allowed; }
     .button-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
     .status { display: flex; gap: 10px; align-items: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
     .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: 0 0 auto; }
-    .dot.ok { background: var(--acid-dark); box-shadow: 0 0 0 4px rgba(138,163,35,.15); }
-    .dot.warn { background: var(--rust); }
+    .dot.ok { background: #28a96b; box-shadow: 0 0 0 4px rgba(40,169,107,.15); }
+    .dot.warn { background: var(--red); }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 18px 0; }
-    .stat { padding: 15px; background: var(--paper-2); border: 1px solid var(--line); }
-    .stat strong { display: block; font: 600 28px/1 'IBM Plex Mono'; letter-spacing: -.08em; margin-bottom: 7px; }
+    .stat { padding: 17px; background: var(--paper-2); border-top: 3px solid var(--ink); }
+    .stat:nth-child(2) { border-color: var(--red); }
+    .stat:nth-child(3) { border-color: var(--cyan); }
+    .stat strong { display: block; font: 600 31px/1 'Chakra Petch'; letter-spacing: -.06em; margin-bottom: 7px; }
     .stat span { color: var(--muted); font-size: 11px; }
     .chips { display: flex; flex-wrap: wrap; gap: 7px; }
-    .chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; background: var(--white); border: 1px solid var(--line); font-size: 12px; }
-    .chip b { color: var(--rust); font-family: 'IBM Plex Mono'; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; background: var(--yellow); border: 1px solid var(--ink); font-size: 12px; }
+    .chip b { color: var(--red); font-family: 'IBM Plex Mono'; }
     .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
     .list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
     .list li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12px; line-height: 1.45; }
     .list li span:first-child { overflow-wrap: anywhere; }
-    .count { color: var(--rust); font: 600 11px 'IBM Plex Mono'; white-space: nowrap; }
+    .count { color: var(--red); font: 600 11px 'IBM Plex Mono'; white-space: nowrap; }
     .destination { position: sticky; top: 18px; }
     .destination .panel { overflow: hidden; }
-    .signal { padding: 19px 22px; background: var(--ink); color: var(--white); position: relative; }
-    .signal::after { content: '01'; position: absolute; right: 22px; top: 15px; font: 500 12px 'IBM Plex Mono'; color: var(--acid); }
-    .signal h2 { color: var(--acid); }
+    .signal { padding: 24px 24px 22px; background: var(--ink); color: var(--white); position: relative; border-bottom: 6px solid var(--red); }
+    .signal::after { content: 'DEST / 002'; position: absolute; right: 22px; top: 15px; font: 500 10px 'IBM Plex Mono'; color: var(--yellow); }
+    .signal h2 { color: var(--white); font-size: 32px; }
     .signal p { color: rgba(255,253,246,.7); margin: 7px 34px 0 0; font-size: 12px; line-height: 1.5; }
-    .dest-body { padding: 22px; }
+    .dest-body { padding: 24px; }
     label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
-    input[type=text], input[type=number] { width: 100%; padding: 11px 12px; border: 1px solid var(--line); background: var(--white); color: var(--ink); font: 12px 'IBM Plex Mono'; outline: none; }
-    input:focus { border-color: var(--rust); box-shadow: 0 0 0 3px rgba(201,110,74,.12); }
-    .oauth-state { margin: 12px 0 17px; padding: 11px; background: var(--paper-2); font-size: 12px; line-height: 1.5; }
+    input[type=text], input[type=number] { width: 100%; padding: 12px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); font: 12px 'IBM Plex Mono'; outline: none; border-radius: 0; }
+    input:focus { border-color: var(--red); box-shadow: 4px 4px 0 rgba(255,59,48,.18); }
+    .oauth-state { margin: 12px 0 17px; padding: 12px; background: var(--paper-2); border-left: 4px solid var(--cyan); font-size: 12px; line-height: 1.5; }
     .action { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
     .action h3 { display: flex; justify-content: space-between; align-items: center; }
-    .tag { font: 500 10px 'IBM Plex Mono'; color: var(--acid-dark); background: rgba(215,239,90,.4); padding: 4px 6px; }
-    .warning { padding: 12px; background: #fff0e9; border-left: 3px solid var(--rust); color: #70331f; font-size: 12px; line-height: 1.55; margin-top: 14px; }
-    .good { padding: 12px; background: rgba(215,239,90,.28); border-left: 3px solid var(--acid-dark); font-size: 12px; line-height: 1.55; margin-top: 14px; }
-    .log { max-height: 190px; overflow: auto; margin-top: 16px; padding: 12px; background: #17201c; color: #d7ef5a; font: 11px/1.65 'IBM Plex Mono'; white-space: pre-wrap; }
+    .tag { font: 500 9px 'IBM Plex Mono'; color: var(--ink); background: var(--cyan); border: 1px solid var(--ink); padding: 4px 6px; }
+    .warning { padding: 13px; background: #ffe4de; border: 1px solid var(--red); color: #6c211d; font-size: 12px; line-height: 1.55; margin-top: 18px; }
+    .good { padding: 12px; background: #e8f5d2; border-left: 4px solid #28a96b; font-size: 12px; line-height: 1.55; margin-top: 14px; }
+    .log { max-height: 220px; overflow: auto; margin-top: 16px; padding: 14px; background: #071127; color: var(--yellow); border-left: 5px solid var(--red); font: 11px/1.7 'IBM Plex Mono'; white-space: pre-wrap; }
     footer { margin-top: 24px; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 11px; line-height: 1.6; }
     footer a { color: var(--ink); }
     .empty { color: var(--muted); font-size: 13px; padding: 15px 0; }
-    @media (max-width: 860px) { header { display: block; } .header-note { margin-top: 22px; max-width: none; } .grid { grid-template-columns: 1fr; } .destination { position: static; } }
-    @media (max-width: 520px) { .shell { padding: 18px 15px 50px; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } .stepbar { grid-template-columns: 1fr; } }
+    @keyframes enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    header, .stepbar, .grid { animation: enter .55s both; }
+    .stepbar { animation-delay: .08s; } .grid { animation-delay: .16s; }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    @media (max-width: 900px) { header { grid-template-columns: 1fr; gap: 28px; } .header-note { max-width: 520px; } .grid { grid-template-columns: 1fr; } .destination { position: static; } }
+    @media (max-width: 600px) { .shell { padding: 0 14px 50px; } header { min-height: 260px; padding-top: 82px; } header::after { display: none; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr 1fr; } .stat { padding: 11px 8px; } .stat strong { font-size: 24px; } .stepbar { grid-template-columns: 1fr; border: 0; } .step { border: 1px solid var(--ink); border-bottom: 0; min-height: auto; } .step:last-child { border-bottom: 1px solid var(--ink); } .panel.pad, .dest-body { padding: 18px; } }
   </style>
 </head>
 <body>
   <main class="shell">
     <header>
       <div>
-        <div class="eyebrow">local tool / youtube only</div>
-        <h1>ย้ายสิ่งที่คุณดู<br />ให้เป็น <em>สัญญาณ</em></h1>
+        <div class="eyebrow">Takeout → YouTube</div>
+        <h1>ของเดิม<br />ไปช่อง<em>ใหม่</em></h1>
       </div>
-      <p class="header-note">เครื่องมือช่วยย้ายแบบที่ YouTube อนุญาตจริง ไม่หลอกระบบ ไม่ขอรหัสผ่าน และไม่แตะ Gmail หรือ Drive</p>
+      <p class="header-note">อ่าน Google Takeout ในเครื่อง แล้วช่วยนำรายการติดตามและวิดีโอเก่าไปยังช่องใหม่—เท่าที่ YouTube อนุญาตจริง</p>
     </header>
 
     <div class="rule"></div>
     <div class="stepbar">
-      <div class="step active"><strong>01 · อ่านข้อมูล</strong>เลือกโฟลเดอร์ Takeout จากเครื่อง</div>
-      <div class="step"><strong>02 · ตรวจความสนใจ</strong>ดูสิ่งที่จะนำไปใช้ก่อนทำรายการ</div>
-      <div class="step"><strong>03 · ปลายทาง</strong>OAuth + เฉพาะสิ่งที่ API รองรับ</div>
+      <div class="step active"><strong>01 / เปิดแฟ้ม</strong>เลือกโฟลเดอร์ Takeout จากเครื่อง</div>
+      <div class="step"><strong>02 / ตรวจรายการ</strong>ดูข้อมูลก่อนส่งไปยังช่องใหม่</div>
+      <div class="step"><strong>03 / เชื่อมต่อ</strong>เลือกบัญชีปลายทางและเริ่มทำรายการ</div>
     </div>
 
     <div class="grid">
