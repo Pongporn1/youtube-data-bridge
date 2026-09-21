@@ -191,7 +191,7 @@
   </main>
 
   <script>
-    const state = { watch: [], searches: [], subscriptions: [], token: null, tokenClient: null };
+    const state = { watch: [], searches: [], subscriptions: [], token: null, tokenClient: null, playlistBusy: false };
     const DEFAULT_CLIENT_ID = '1098479236501-tl1kirmto5r2a7f67292kmt4ncj5i4rf.apps.googleusercontent.com';
     const $ = (id) => document.getElementById(id);
     $('clientId').value = DEFAULT_CLIENT_ID;
@@ -275,8 +275,8 @@
       renderList('watchList', groupTop(state.watch, 'title'));
       renderList('searchList', groupTop(state.searches, 'query'));
       renderInsights();
-      $('subscribeBtn').disabled = !state.token || !state.subscriptions.length;
-      $('playlistBtn').disabled = !state.token || !state.watch.length;
+      $('subscribeBtn').disabled = state.playlistBusy || !state.token || !state.subscriptions.length;
+      $('playlistBtn').disabled = state.playlistBusy || !state.token || !state.watch.length;
     }
     async function readFiles(files) {
       state.watch=[]; state.searches=[]; state.subscriptions=[];
@@ -298,30 +298,55 @@
     $('takeoutFiles').addEventListener('change', e => readFiles([...e.target.files]).catch(err => { $('parseDot').className='dot warn'; $('parseStatus').textContent='อ่านไฟล์ไม่สำเร็จ'; writeLog(err.message); }));
     $('originText').textContent = window.location.origin;
 
-    function apiHeaders() { return { Authorization: `Bearer ${state.token}`, 'Content-Type': 'application/json' }; }
-    async function yt(path, options={}) { const r=await fetch(`https://www.googleapis.com/youtube/v3${path}`, { ...options, headers: { ...apiHeaders(), ...(options.headers||{}) }}); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error?.message || `YouTube API ${r.status}`); return data; }
-    async function findPrivatePlaylist(title) {
+    function apiHeaders(token=state.token) { return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+    async function yt(path, options={}, token=state.token) {
+      const r=await fetch(`https://www.googleapis.com/youtube/v3${path}`, { ...options, headers: { ...apiHeaders(token), ...(options.headers||{}) }});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok) {
+        const error=new Error(data.error?.message || `YouTube API ${r.status}`);
+        error.status=r.status;
+        error.reason=data.error?.errors?.[0]?.reason || '';
+        throw error;
+      }
+      return data;
+    }
+    const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    function isPlaylistNotReady(error) {
+      return error?.reason === 'playlistNotFound' || (error?.status === 404 && /playlist/i.test(error?.message || ''));
+    }
+    async function retryPlaylistRequest(request, label) {
+      const delays=[750,1500,3000,6000,10000];
+      for(let attempt=0;;attempt++) {
+        try { return await request(); }
+        catch(error) {
+          if(!isPlaylistNotReady(error) || attempt >= delays.length) throw error;
+          writeLog(`${label} · YouTube ยังเตรียมเพลย์ลิสต์ไม่เสร็จ ลองใหม่ใน ${delays[attempt]/1000} วินาที`);
+          await wait(delays[attempt]);
+        }
+      }
+    }
+    async function findPrivatePlaylist(title, token=state.token) {
       let pageToken = '';
       do {
         const query = `/playlists?part=snippet,status&mine=true&maxResults=50${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
-        const data = await yt(query);
+        const data = await yt(query, {}, token);
         const found = (data.items || []).find(x => x.snippet?.title === title && x.status?.privacyStatus === 'private');
         if (found) return found;
         pageToken = data.nextPageToken || '';
       } while (pageToken);
       return null;
     }
-    async function listPlaylistVideoIds(playlistId) {
+    async function listPlaylistVideoIds(playlistId, token=state.token) {
       const ids = new Set(); let pageToken = '';
       do {
         const query = `/playlistItems?part=snippet&playlistId=${encodeURIComponent(playlistId)}&maxResults=50${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
-        const data = await yt(query);
+        const data = await yt(query, {}, token);
         for (const item of data.items || []) { const id = item.snippet?.resourceId?.videoId; if (id) ids.add(id); }
         pageToken = data.nextPageToken || '';
       } while (pageToken);
       return ids;
     }
-    function enableActions() { $('signoutBtn').disabled=false; $('subscribeBtn').disabled=!state.subscriptions.length; $('playlistBtn').disabled=!state.watch.length; }
+    function enableActions() { $('signoutBtn').disabled=state.playlistBusy; renderState(); }
     $('authBtn').addEventListener('click', () => {
       const clientId=$('clientId').value.trim();
       if(!clientId) { $('oauthState').textContent='กรุณาใส่ OAuth Client ID ก่อน'; return; }
@@ -343,17 +368,24 @@
       if(!state.token || !state.watch.length) return;
       const limit=Math.min(150, Math.max(1, Number($('playlistLimit').value)||50));
       if(!confirm(`จะสร้างเพลย์ลิสต์ส่วนตัวและเพิ่มวิดีโอ ${limit} รายการ (ไม่ใช่ Watch history) ยืนยันหรือไม่?`)) return;
-      $('playlistBtn').disabled=true;
+      const token=state.token;
+      const watchIds=[...new Set(state.watch.map(x=>x.id))].slice(0,limit);
+      state.playlistBusy=true; $('signoutBtn').disabled=true; renderState();
       try {
         const title='ประวัติการดูเดิม · เก็บจาก Takeout';
-        let playlist=await findPrivatePlaylist(title);
+        let playlist=await findPrivatePlaylist(title, token);
         if (playlist) writeLog(`พบเพลย์ลิสต์เดิมแล้ว · ใช้ต่อโดยไม่สร้างซ้ำ · ${playlist.id}`);
-        else playlist=await yt('/playlists?part=snippet,status',{method:'POST',body:JSON.stringify({snippet:{title,description:'สร้างโดย YouTube Data Bridge จาก Google Takeout ของเจ้าของบัญชี',},status:{privacyStatus:'private'}})});
-        const existing=await listPlaylistVideoIds(playlist.id);
-        let done=0; const ids=[...new Set(state.watch.map(x=>x.id))].slice(0,limit).filter(id=>!existing.has(id));
-        for(const id of ids){ try { await yt('/playlistItems?part=snippet',{method:'POST',body:JSON.stringify({snippet:{playlistId:playlist.id,resourceId:{kind:'youtube#video',videoId:id}}})}); done++; writeLog(`เพิ่มแล้ว ${done}/${ids.length}: ${id}`); } catch(e){ writeLog(`เพิ่มวิดีโอ ${id} ไม่สำเร็จ: ${e.message}`); } }
-        writeLog(`เสร็จแล้ว · เพิ่มใหม่ ${done} รายการ · มีอยู่เดิม ${existing.size} รายการ · ${playlist.id}`); $('playlistBtn').disabled=false;
-      } catch(e) { writeLog('สร้างเพลย์ลิสต์ไม่สำเร็จ: '+e.message); $('playlistBtn').disabled=false; }
+        else {
+          playlist=await yt('/playlists?part=snippet,status',{method:'POST',body:JSON.stringify({snippet:{title,description:'สร้างโดย YouTube Data Bridge จาก Google Takeout ของเจ้าของบัญชี',},status:{privacyStatus:'private'}})}, token);
+          writeLog(`สร้างเพลย์ลิสต์แล้ว · กำลังรอ YouTube เตรียมรายการ · ${playlist.id}`);
+        }
+        if(!playlist?.id) throw new Error('YouTube ไม่ได้ส่งรหัสเพลย์ลิสต์กลับมา');
+        const existing=await retryPlaylistRequest(() => listPlaylistVideoIds(playlist.id, token), 'กำลังอ่านเพลย์ลิสต์');
+        let done=0; const ids=watchIds.filter(id=>!existing.has(id));
+        for(const id of ids){ try { await retryPlaylistRequest(() => yt('/playlistItems?part=snippet',{method:'POST',body:JSON.stringify({snippet:{playlistId:playlist.id,resourceId:{kind:'youtube#video',videoId:id}}})}, token), `กำลังเพิ่มวิดีโอ ${id}`); done++; writeLog(`เพิ่มแล้ว ${done}/${ids.length}: ${id}`); } catch(e){ writeLog(`เพิ่มวิดีโอ ${id} ไม่สำเร็จ: ${e.message}`); } }
+        writeLog(`เสร็จแล้ว · เพิ่มใหม่ ${done} รายการ · มีอยู่เดิม ${existing.size} รายการ · ${playlist.id}`);
+      } catch(e) { writeLog('สร้างเพลย์ลิสต์ไม่สำเร็จ: '+e.message); }
+      finally { state.playlistBusy=false; $('signoutBtn').disabled=!state.token; renderState(); }
     });
   </script>
 </body>
