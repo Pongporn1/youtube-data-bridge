@@ -35,13 +35,11 @@
       background-size: 32px 32px;
     }
     .shell { max-width: 1380px; margin: 0 auto; padding: 0 28px 70px; position: relative; }
-    header { min-height: 300px; display: grid; grid-template-columns: 1fr 330px; gap: 60px; align-items: end; padding: 70px 0 38px; border-bottom: 8px solid var(--ink); position: relative; }
+    header { min-height: 270px; display: flex; align-items: end; padding: 70px 0 38px; border-bottom: 8px solid var(--ink); position: relative; }
     header::before { content: 'YT / BRIDGE'; position: absolute; top: 22px; left: 0; font: 700 13px 'IBM Plex Mono'; letter-spacing: .18em; }
-    header::after { content: 'LOCAL-FIRST  ·  NO PASSWORD  ·  API SAFE'; position: absolute; top: 22px; right: 0; font: 500 10px 'IBM Plex Mono'; letter-spacing: .08em; }
     .eyebrow { display: inline-block; font: 600 11px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--white); background: var(--red); padding: 7px 10px; margin-bottom: 18px; }
     h1 { font-family: 'Chakra Petch', sans-serif; font-size: clamp(48px, 7.2vw, 102px); line-height: .84; letter-spacing: -.065em; max-width: 930px; margin: 0; font-weight: 700; }
     h1 em { font-style: normal; color: var(--red); }
-    .header-note { margin: 0 0 4px; border-top: 1px solid var(--ink); padding-top: 14px; font-size: 14px; line-height: 1.7; color: var(--muted); }
     .rule { display: none; }
     .stepbar { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--ink); margin-bottom: 26px; }
     .step { min-height: 84px; padding: 17px 18px; border-right: 1px solid var(--ink); color: var(--muted); font: 500 11px/1.5 'IBM Plex Mono', monospace; background: rgba(249,247,240,.55); }
@@ -61,7 +59,6 @@
       display: grid; place-items: center; text-align: center; padding: 26px; position: relative; overflow: hidden;
     }
     .drop::before { content: '↓'; position: absolute; left: 20px; top: 10px; font: 400 70px/1 'Chakra Petch'; color: var(--red); }
-    .drop::after { content: 'LOCAL / 001'; position: absolute; right: 16px; bottom: 12px; font: 600 10px 'IBM Plex Mono'; color: var(--muted); }
     .drop strong { display: block; font: 600 21px 'Chakra Petch'; margin-bottom: 8px; }
     input[type=file] { display: none; }
     .button { border: 1px solid var(--ink); background: var(--ink); color: var(--white); padding: 12px 16px; font: 600 13px 'IBM Plex Sans Thai'; cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s; border-radius: 0; }
@@ -91,7 +88,6 @@
     .destination { position: sticky; top: 18px; }
     .destination .panel { overflow: hidden; }
     .signal { padding: 24px 24px 22px; background: var(--ink); color: var(--white); position: relative; border-bottom: 6px solid var(--red); }
-    .signal::after { content: 'DEST / 002'; position: absolute; right: 22px; top: 15px; font: 500 10px 'IBM Plex Mono'; color: var(--yellow); }
     .signal h2 { color: var(--white); font-size: 32px; }
     .signal p { color: rgba(255,253,246,.7); margin: 7px 34px 0 0; font-size: 12px; line-height: 1.5; }
     .dest-body { padding: 24px; }
@@ -101,7 +97,6 @@
     .oauth-state { margin: 12px 0 17px; padding: 12px; background: var(--paper-2); border-left: 4px solid var(--cyan); font-size: 12px; line-height: 1.5; }
     .action { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
     .action h3 { display: flex; justify-content: space-between; align-items: center; }
-    .tag { font: 500 9px 'IBM Plex Mono'; color: var(--ink); background: var(--cyan); border: 1px solid var(--ink); padding: 4px 6px; }
     .warning { padding: 13px; background: #ffe4de; border: 1px solid var(--red); color: #6c211d; font-size: 12px; line-height: 1.55; margin-top: 18px; }
     .good { padding: 12px; background: #e8f5d2; border-left: 4px solid #28a96b; font-size: 12px; line-height: 1.55; margin-top: 14px; }
     .log { max-height: 220px; overflow: auto; margin-top: 16px; padding: 14px; background: #071127; color: var(--yellow); border-left: 5px solid var(--red); font: 11px/1.7 'IBM Plex Mono'; white-space: pre-wrap; }
@@ -112,8 +107,8 @@
     header, .stepbar, .grid { animation: enter .55s both; }
     .stepbar { animation-delay: .08s; } .grid { animation-delay: .16s; }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
-    @media (max-width: 900px) { header { grid-template-columns: 1fr; gap: 28px; } .header-note { max-width: 520px; } .grid { grid-template-columns: 1fr; } .destination { position: static; } }
-    @media (max-width: 600px) { .shell { padding: 0 14px 50px; } header { min-height: 260px; padding-top: 82px; } header::after { display: none; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr 1fr; } .stat { padding: 11px 8px; } .stat strong { font-size: 24px; } .stepbar { grid-template-columns: 1fr; border: 0; } .step { border: 1px solid var(--ink); border-bottom: 0; min-height: auto; } .step:last-child { border-bottom: 1px solid var(--ink); } .panel.pad, .dest-body { padding: 18px; } }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .destination { position: static; } }
+    @media (max-width: 600px) { .shell { padding: 0 14px 50px; } header { min-height: 260px; padding-top: 82px; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr 1fr; } .stat { padding: 11px 8px; } .stat strong { font-size: 24px; } .stepbar { grid-template-columns: 1fr; border: 0; } .step { border: 1px solid var(--ink); border-bottom: 0; min-height: auto; } .step:last-child { border-bottom: 1px solid var(--ink); } .panel.pad, .dest-body { padding: 18px; } }
   </style>
 </head>
 <body>
@@ -123,7 +118,6 @@
         <div class="eyebrow">Takeout → YouTube</div>
         <h1>ของเดิม<br />ไปช่อง<em>ใหม่</em></h1>
       </div>
-      <p class="header-note">อ่าน Google Takeout ในเครื่อง แล้วช่วยนำรายการติดตามและวิดีโอเก่าไปยังช่องใหม่—เท่าที่ YouTube อนุญาตจริง</p>
     </header>
 
     <div class="rule"></div>
@@ -137,7 +131,6 @@
       <section class="panel pad">
         <div class="panel-head">
           <div><h2>แฟ้มข้อมูลต้นทาง</h2><div class="micro">อ่านในเบราว์เซอร์ของคุณเท่านั้น</div></div>
-          <div class="mono micro" id="sourceLabel">ยังไม่ได้เลือก</div>
         </div>
         <div class="drop">
           <div>
@@ -145,7 +138,6 @@
             <div class="micro">เลือกโฟลเดอร์ที่มี “YouTube และ YouTube Music”<br />ไฟล์จะไม่ถูกอัปโหลดออกจากเครื่อง</div>
             <label class="button acid" for="takeoutFiles" style="display:inline-block;margin-top:16px;cursor:pointer">เลือกโฟลเดอร์ Takeout</label>
             <input id="takeoutFiles" type="file" webkitdirectory directory multiple />
-            <div class="micro" style="margin-top:8px">เว็บจะอ่านไฟล์ในเบราว์เซอร์ของคุณเท่านั้น และไม่อัปโหลดไฟล์ Takeout ไปที่เซิร์ฟเวอร์</div>
           </div>
         </div>
         <div class="status"><span class="dot" id="parseDot"></span><span id="parseStatus">รอไฟล์ต้นทาง</span></div>
@@ -165,20 +157,18 @@
         <div class="panel">
           <div class="signal"><h2>ปลายทาง</h2><p>เลือกบัญชี Google ปลายทางของคุณในหน้าต่าง OAuth</p></div>
           <div class="dest-body">
-            <label for="clientId">Google OAuth Client ID</label>
-            <input id="clientId" type="text" placeholder="Client ID ของเว็บนี้" autocomplete="off" />
-            <div class="micro" style="margin-top:7px">ตั้งค่าไว้สำหรับเว็บนี้แล้ว ผู้ใช้แต่ละคนจะเลือกบัญชีปลายทางของตัวเองผ่าน Google OAuth · Authorized JavaScript origin: <span class="mono" id="originText"></span></div>
+            <input id="clientId" type="hidden" />
             <div id="oauthState" class="oauth-state">ยังไม่ได้เชื่อมต่อบัญชีปลายทาง</div>
             <div class="button-row"><button id="authBtn" class="button" type="button">เชื่อมต่อด้วย Google OAuth</button><button id="signoutBtn" class="button secondary" type="button" disabled>ยกเลิกสิทธิ์</button></div>
 
             <div class="action">
-              <h3>สมัครช่องเดิม <span class="tag">รองรับโดย API</span></h3>
+              <h3>สมัครช่องเดิม</h3>
               <p class="micro">ใช้รายชื่อช่องจาก CSV เพื่อสมัครในบัญชีปลายทาง ไม่แตะประวัติการดู</p>
               <button id="subscribeBtn" class="button acid" type="button" disabled>สมัครช่องที่พบทั้งหมด</button>
             </div>
 
             <div class="action">
-              <h3>เก็บวิดีโอเดิมเป็นเพลย์ลิสต์ <span class="tag">ไม่ใช่ history</span></h3>
+              <h3>เก็บวิดีโอเดิมเป็นเพลย์ลิสต์</h3>
               <p class="micro">สร้างเพลย์ลิสต์ส่วนตัวในปลายทางเพื่อเปิดดูรายการเดิมได้ YouTube จะไม่บันทึกเป็นประวัติย้อนหลัง</p>
               <label for="playlistLimit" style="margin-top:12px">จำนวนวิดีโอสูงสุด</label>
               <input id="playlistLimit" type="number" min="1" max="150" value="50" />
@@ -191,7 +181,7 @@
         </div>
       </aside>
     </div>
-    <footer><span>ข้อมูล Takeout อยู่ในเครื่อง · OAuth token อยู่ในหน่วยความจำของหน้านี้</span><span><a href="./privacy.html">ความเป็นส่วนตัว</a> · <a href="https://support.google.com/youtube/answer/3056283" target="_blank" rel="noreferrer">ข้อจำกัดทางการของ YouTube</a> · <a href="https://developers.google.com/youtube/v3/docs" target="_blank" rel="noreferrer">YouTube Data API</a></span></footer>
+    <footer><span><a href="./privacy.html">ความเป็นส่วนตัว</a> · <a href="https://support.google.com/youtube/answer/3056283" target="_blank" rel="noreferrer">ข้อจำกัดของ YouTube</a></span></footer>
   </main>
 
   <script>
@@ -296,12 +286,10 @@
       }
       const seen = new Set(); state.watch = state.watch.filter(x => { const k=`${x.id}|${x.date?.toISOString()||''}`; if(seen.has(k)) return false; seen.add(k); return true; });
       const subSeen = new Set(); state.subscriptions = state.subscriptions.filter(x => !subSeen.has(x.id) && subSeen.add(x.id));
-      $('parseDot').className='dot ok'; $('parseStatus').textContent=`อ่านเสร็จแล้ว · ${files.length} ไฟล์`; $('sourceLabel').textContent='LOCAL TAKEOUT';
+      $('parseDot').className='dot ok'; $('parseStatus').textContent=`อ่านเสร็จแล้ว · ${files.length} ไฟล์`;
       renderState();
     }
     $('takeoutFiles').addEventListener('change', e => readFiles([...e.target.files]).catch(err => { $('parseDot').className='dot warn'; $('parseStatus').textContent='อ่านไฟล์ไม่สำเร็จ'; writeLog(err.message); }));
-    $('originText').textContent = window.location.origin;
-
     function apiHeaders(token=state.token) { return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }; }
     async function yt(path, options={}, token=state.token) {
       const r=await fetch(`https://www.googleapis.com/youtube/v3${path}`, { ...options, headers: { ...apiHeaders(token), ...(options.headers||{}) }});
