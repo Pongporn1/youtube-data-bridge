@@ -67,6 +67,8 @@
     .button.acid { background: var(--yellow); color: var(--ink); border-color: var(--ink); }
     .button:disabled { opacity: .42; cursor: not-allowed; }
     .button-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+    .takeout-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 16px; }
+    .takeout-actions .button { display: inline-flex; align-items: center; justify-content: center; margin: 0; text-decoration: none; }
     .status { display: flex; gap: 10px; align-items: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
     .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: 0 0 auto; }
     .dot.ok { background: #28a96b; box-shadow: 0 0 0 4px rgba(40,169,107,.15); }
@@ -136,7 +138,10 @@
           <div>
             <strong>วางโฟลเดอร์ Takeout ตรงนี้</strong>
             <div class="micro">เลือกโฟลเดอร์ที่มี “YouTube และ YouTube Music”<br />ไฟล์จะไม่ถูกอัปโหลดออกจากเครื่อง</div>
-            <label class="button acid" for="takeoutFiles" style="display:inline-block;margin-top:16px;cursor:pointer">เลือกโฟลเดอร์ Takeout</label>
+            <div class="takeout-actions">
+              <a class="button secondary" href="https://takeout.google.com/settings/takeout/custom/youtube" target="_blank" rel="noreferrer">ดาวน์โหลดข้อมูลจาก Google ↗</a>
+              <label class="button acid" for="takeoutFiles" style="cursor:pointer">เลือกโฟลเดอร์ Takeout</label>
+            </div>
             <input id="takeoutFiles" type="file" webkitdirectory directory multiple />
           </div>
         </div>
