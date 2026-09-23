@@ -82,7 +82,7 @@
     .chips { display: flex; flex-wrap: wrap; gap: 7px; }
     .chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 9px; background: var(--yellow); border: 1px solid var(--ink); font-size: 12px; }
     .chip b { color: var(--red); font-family: 'IBM Plex Mono'; }
-    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+    .columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
     .list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
     .list li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12px; line-height: 1.45; }
     .list li span:first-child { overflow-wrap: anywhere; }
@@ -110,7 +110,8 @@
     .stepbar { animation-delay: .08s; } .grid { animation-delay: .16s; }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .destination { position: static; } }
-    @media (max-width: 600px) { .shell { padding: 0 14px 50px; } header { min-height: 260px; padding-top: 82px; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr 1fr; } .stat { padding: 11px 8px; } .stat strong { font-size: 24px; } .stepbar { grid-template-columns: 1fr; border: 0; } .step { border: 1px solid var(--ink); border-bottom: 0; min-height: auto; } .step:last-child { border-bottom: 1px solid var(--ink); } .panel.pad, .dest-body { padding: 18px; } }
+    @media (max-width: 850px) { .columns { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .shell { padding: 0 14px 50px; } header { min-height: 260px; padding-top: 82px; } .columns { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr; } .stat { padding: 11px 8px; } .stat strong { font-size: 24px; } .stepbar { grid-template-columns: 1fr; border: 0; } .step { border: 1px solid var(--ink); border-bottom: 0; min-height: auto; } .step:last-child { border-bottom: 1px solid var(--ink); } .panel.pad, .dest-body { padding: 18px; } }
   </style>
 </head>
 <body>
@@ -141,8 +142,10 @@
             <div class="takeout-actions">
               <a class="button secondary" href="https://takeout.google.com/settings/takeout/custom/youtube" target="_blank" rel="noreferrer">ดาวน์โหลดข้อมูลจาก Google ↗</a>
               <label class="button acid" for="takeoutFiles" style="cursor:pointer">เลือกโฟลเดอร์ Takeout</label>
+              <label class="button secondary" for="moreTakeoutFiles" style="cursor:pointer">เพิ่มไฟล์ My Activity</label>
             </div>
             <input id="takeoutFiles" type="file" webkitdirectory directory multiple />
+            <input id="moreTakeoutFiles" type="file" accept=".json,.html,.csv" multiple />
           </div>
         </div>
         <div class="status"><span class="dot" id="parseDot"></span><span id="parseStatus">รอไฟล์ต้นทาง</span></div>
@@ -150,11 +153,15 @@
           <div class="stat"><strong id="watchCount">—</strong><span>รายการดูที่อ่านได้</span></div>
           <div class="stat"><strong id="searchCount">—</strong><span>คำค้นหา</span></div>
           <div class="stat"><strong id="subCount">—</strong><span>ช่องที่ติดตาม</span></div>
+          <div class="stat"><strong id="musicCount">—</strong><span>เพลงในคลัง</span></div>
+          <div class="stat"><strong id="playlistCount">—</strong><span>เพลย์ลิสต์เดิม</span></div>
+          <div class="stat"><strong id="likesCount">—</strong><span>วิดีโอที่กดชอบ</span></div>
         </div>
         <div id="insights" class="empty">เมื่อเลือกไฟล์แล้ว สรุปความสนใจจะปรากฏตรงนี้</div>
         <div class="columns">
           <div><h3>วิดีโอที่พบซ้ำบ่อย</h3><ul id="watchList" class="list"><li class="empty">ยังไม่มีข้อมูล</li></ul></div>
           <div><h3>คำค้นหาที่พบซ้ำบ่อย</h3><ul id="searchList" class="list"><li class="empty">ยังไม่มีข้อมูล</li></ul></div>
+          <div><h3>เพลงในคลัง</h3><ul id="musicList" class="list"><li class="empty">ยังไม่มีข้อมูล</li></ul></div>
         </div>
       </section>
 
@@ -173,6 +180,24 @@
             </div>
 
             <div class="action">
+              <h3>ย้ายเพลงในคลัง YouTube Music</h3>
+              <p class="micro">สร้างเพลย์ลิสต์ส่วนตัวจากรายการเพลงที่ Takeout ส่งออกมา</p>
+              <button id="musicBtn" class="button acid" type="button" disabled>เก็บเพลงในเพลย์ลิสต์</button>
+            </div>
+
+            <div class="action">
+              <h3>ย้ายเพลย์ลิสต์เดิม</h3>
+              <p class="micro">สร้างเพลย์ลิสต์ส่วนตัวใหม่ตามไฟล์ CSV ที่พบใน Takeout</p>
+              <button id="takeoutPlaylistsBtn" class="button acid" type="button" disabled>ย้ายเพลย์ลิสต์ที่พบ</button>
+            </div>
+
+            <div class="action">
+              <h3>กดชอบวิดีโอเดิม</h3>
+              <p class="micro">อ่านรายการจากไฟล์ likes หรือ My Activity แล้วกดชอบในบัญชีปลายทาง · ใช้โควตาตามจำนวนวิดีโอ</p>
+              <button id="likesBtn" class="button acid" type="button" disabled>กดชอบวิดีโอที่พบ</button>
+            </div>
+
+            <div class="action">
               <h3>เก็บวิดีโอเดิมเป็นเพลย์ลิสต์</h3>
               <p class="micro">สร้างเพลย์ลิสต์ส่วนตัวในปลายทางเพื่อเปิดดูรายการเดิมได้ YouTube จะไม่บันทึกเป็นประวัติย้อนหลัง</p>
               <label for="playlistLimit" style="margin-top:12px">จำนวนวิดีโอสูงสุด</label>
@@ -180,7 +205,7 @@
               <button id="playlistBtn" class="button acid" type="button" disabled style="margin-top:10px">สร้างเพลย์ลิสต์ส่วนตัว</button>
             </div>
 
-            <div class="warning"><b>ทำไม่ได้โดย API:</b> เขียน Watch history หรือ Search history ย้อนหลังเข้าไปในบัญชีใหม่โดยตรง ดังนั้นปุ่มด้านบนจะไม่แอบทำสิ่งนั้น</div>
+            <div class="warning"><b>ข้อจำกัด:</b> YouTube ไม่เปิด API สำหรับนำ Watch history หรือ Search history ย้อนหลังเข้าไปโดยตรง รายการดูทำเป็นเพลย์ลิสต์ส่วนตัวได้ การเพิ่มวิดีโอหรือกดชอบใช้โควตา 50 หน่วยต่อรายการ เพลงที่ใช้ไม่ได้หรือถูกลบอาจเพิ่มไม่สำเร็จ</div>
             <div id="log" class="log" hidden></div>
           </div>
         </div>
@@ -190,7 +215,7 @@
   </main>
 
   <script>
-    const state = { watch: [], searches: [], subscriptions: [], token: null, tokenClient: null, playlistBusy: false };
+    const state = { watch: [], searches: [], subscriptions: [], music: [], playlists: [], likes: [], token: null, tokenClient: null, playlistBusy: false, filesRead: 0 };
     const DEFAULT_CLIENT_ID = '1098479236501-tl1kirmto5r2a7f67292kmt4ncj5i4rf.apps.googleusercontent.com';
     const $ = (id) => document.getElementById(id);
     $('clientId').value = DEFAULT_CLIENT_ID;
@@ -232,7 +257,35 @@
       });
       return entries;
     }
+    function parseActivityHtml(text) {
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      const result = { watch: [], searches: [], likes: [] };
+      doc.querySelectorAll('.outer-cell').forEach(card => {
+        const body = card.querySelector('.content-cell.mdl-cell--6-col') || card;
+        const content = norm(body.textContent);
+        const links = [...body.querySelectorAll('a')];
+        const videoLink = links.find(a => /youtube\.com\/(?:watch|shorts|live|embed)\/?|youtu\.be\//i.test(a.href));
+        const videoId = videoLink ? extractVideoId(videoLink.href) : '';
+        if (videoId && /(?:\bliked\b|like(?:d)? this video|ชอบวิดีโอ|กดชอบ|ถูกใจวิดีโอ)/i.test(content)) {
+          result.likes.push({ id: videoId, title: norm(videoLink.textContent) });
+        } else if (videoId && /(?:\bwatched\b|ดูวิดีโอ|รับชมวิดีโอ)/i.test(content)) {
+          result.watch.push({ id: videoId, title: norm(videoLink.textContent), date: null });
+        }
+        const searchLink = links.find(a => /youtube\.com\/results\?/i.test(a.href));
+        if (searchLink) {
+          try {
+            const query = norm(new URL(searchLink.href).searchParams.get('search_query') || '');
+            if (query) result.searches.push({ query: htmlDecode(query.replace(/\+/g, ' ')), date: null });
+          } catch (_) {}
+        } else {
+          const searched = content.match(/(?:searched for|ค้นหา)\s*[“\"]?(.+?)[”\"]?\s*(?:บน YouTube|บน youtube)?$/i);
+          if (searched?.[1]) result.searches.push({ query: norm(searched[1]), date: null });
+        }
+      });
+      return result;
+    }
     function parseCsv(text) {
+      text = text.replace(/^\uFEFF/, '');
       const rows = []; let row = []; let cell = ''; let quote = false;
       for (let i=0;i<text.length;i++) { const c=text[i], n=text[i+1];
         if (c === '"' && quote && n === '"') { cell += '"'; i++; continue; }
@@ -247,6 +300,84 @@
     function parseSubscriptions(text) {
       const rows = parseCsv(text); if (rows.length < 2) return [];
       return rows.slice(1).map(r => ({ id: r[0], url: r[1], name: norm(r[2]) })).filter(x => x.id && x.name);
+    }
+    function extractVideoId(value) {
+      const text = String(value || '').trim();
+      if (/^[A-Za-z0-9_-]{11}$/.test(text)) return text;
+      try {
+        const url = new URL(text);
+        const host = url.hostname.toLowerCase();
+        let id = '';
+        if (host === 'youtu.be' || host.endsWith('.youtu.be')) id = url.pathname.split('/').filter(Boolean)[0] || '';
+        else if (/(^|\.)youtube(?:-nocookie)?\.com$/.test(host) || host === 'music.youtube.com') {
+          id = url.searchParams.get('v') || url.pathname.split('/').filter(Boolean).find((part, i, all) => ['shorts','embed','live'].includes(all[i-1])) || '';
+        }
+        return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+      } catch (_) { return ''; }
+    }
+    function parseMusicLibrary(text) {
+      const rows = parseCsv(text); if (rows.length < 2) return [];
+      const headers = rows[0].map(x => norm(x).toLowerCase());
+      const findColumn = (patterns, fallback) => {
+        const index = headers.findIndex(h => patterns.some(re => re.test(h)));
+        return index >= 0 ? index : fallback;
+      };
+      const idCol = findColumn([/video.?id/, /รหัสวิดีโอ/], 0);
+      const titleCol = findColumn([/song.?title/, /ชื่อเพลง/], 1);
+      const artistCol = findColumn([/artist/, /ศิลปิน/], 3);
+      return rows.slice(1).map(row => {
+        const id = extractVideoId(row[idCol]);
+        const title = norm(row[titleCol]) || 'เพลงจากคลังเดิม';
+        const artist = norm(row[artistCol]);
+        return id ? { id, title, artist } : null;
+      }).filter(Boolean);
+    }
+    function parsePlaylistCsv(text, title) {
+      const rows = parseCsv(text), ids = new Set();
+      for (const row of rows) {
+        const raw = row.map(cell => extractVideoId(cell)).find(Boolean);
+        if (raw) ids.add(raw);
+      }
+      return ids.size ? { title: norm(title).slice(0, 150) || 'เพลย์ลิสต์จาก Takeout', ids: [...ids] } : null;
+    }
+    function parseLikesJson(text) {
+      const root = JSON.parse(text), likes = [];
+      const visit = value => {
+        if (Array.isArray(value)) { value.forEach(visit); return; }
+        if (!value || typeof value !== 'object') return;
+        const title = norm(value.title || value.songTitle || value.name || '');
+        const candidates = [value.videoId, value.video_id, value.id, value.url, value.titleUrl, value.videoUrl, value.link];
+        const id = candidates.map(extractVideoId).find(Boolean);
+        if (id) likes.push({ id, title });
+        Object.values(value).forEach(child => { if (child && typeof child === 'object') visit(child); });
+      };
+      visit(root);
+      return likes;
+    }
+    function parseActivityJson(text) {
+      const root = JSON.parse(text), result = { watch: [], searches: [], likes: [] };
+      const visit = value => {
+        if (Array.isArray(value)) { value.forEach(visit); return; }
+        if (!value || typeof value !== 'object') return;
+        const title = norm(value.title || value.description || '');
+        const candidates = [value.videoId, value.video_id, value.titleUrl, value.url, value.videoUrl, value.link];
+        const videoId = candidates.map(extractVideoId).find(Boolean);
+        if (videoId && /(?:\bliked\b|like(?:d)? this video|ชอบวิดีโอ|กดชอบ|ถูกใจวิดีโอ)/i.test(title)) {
+          result.likes.push({ id: videoId, title });
+        } else if (videoId && /(?:\bwatched\b|ดูวิดีโอ|รับชมวิดีโอ)/i.test(title)) {
+          result.watch.push({ id: videoId, title: title.replace(/^(?:watched|ดูวิดีโอ|รับชมวิดีโอ)\s*/i, ''), date: value.time ? new Date(value.time) : null });
+        }
+        const searchUrl = [value.titleUrl, value.url].find(x => typeof x === 'string' && /youtube\.com\/results\?/i.test(x));
+        if (searchUrl) {
+          try { const query = norm(new URL(searchUrl).searchParams.get('search_query') || ''); if (query) result.searches.push({ query: htmlDecode(query.replace(/\+/g, ' ')), date: null }); } catch (_) {}
+        } else {
+          const searched = title.match(/^(?:searched for|ค้นหา)\s*[“\"]?(.+?)[”\"]?\s*(?:บน YouTube)?$/i);
+          if (searched?.[1]) result.searches.push({ query: norm(searched[1]), date: value.time ? new Date(value.time) : null });
+        }
+        Object.values(value).forEach(child => { if (child && typeof child === 'object') visit(child); });
+      };
+      visit(root);
+      return result;
     }
     function groupTop(items, key, limit=8) {
       const map = new Map(); items.forEach(x => { const value = norm(x[key]); if(value) map.set(value, (map.get(value)||0)+1); });
@@ -271,30 +402,62 @@
       $('watchCount').textContent = state.watch.length.toLocaleString('th-TH');
       $('searchCount').textContent = state.searches.length.toLocaleString('th-TH');
       $('subCount').textContent = state.subscriptions.length.toLocaleString('th-TH');
+      $('musicCount').textContent = state.music.length.toLocaleString('th-TH');
+      $('playlistCount').textContent = state.playlists.length.toLocaleString('th-TH');
+      $('likesCount').textContent = state.likes.length.toLocaleString('th-TH');
       renderList('watchList', groupTop(state.watch, 'title'));
       renderList('searchList', groupTop(state.searches, 'query'));
+      renderList('musicList', groupTop(state.music.map(x => ({ title: x.artist ? `${x.title} · ${x.artist}` : x.title })), 'title'));
       renderInsights();
       $('subscribeBtn').disabled = state.playlistBusy || !state.token || !state.subscriptions.length;
+      $('musicBtn').disabled = state.playlistBusy || !state.token || !state.music.length;
+      $('takeoutPlaylistsBtn').disabled = state.playlistBusy || !state.token || !state.playlists.length;
+      $('likesBtn').disabled = state.playlistBusy || !state.token || !state.likes.length;
       $('playlistBtn').disabled = state.playlistBusy || !state.token || !state.watch.length;
     }
-    async function readFiles(files) {
-      state.watch=[]; state.searches=[]; state.subscriptions=[];
+    function dedupeEntries(items, key) { const seen = new Set(); return items.filter(item => { const value=key(item); if(!value || seen.has(value)) return false; seen.add(value); return true; }); }
+    async function readFiles(files, append=false) {
+      if (!append) { state.watch=[]; state.searches=[]; state.subscriptions=[]; state.music=[]; state.playlists=[]; state.likes=[]; state.filesRead=0; }
       for (const file of files) {
         const lower = file.name.toLowerCase();
+        const path = (file.webkitRelativePath || file.name).toLowerCase();
         if (lower.endsWith('.html')) {
           const text = await file.text();
           if (lower.includes('watch') || lower.includes('การดู')) state.watch.push(...parseHistoryHtml(text,'watch'));
           if (lower.includes('search') || lower.includes('ค้นหา')) state.searches.push(...parseHistoryHtml(text,'search'));
+          if (/my.?activity|activity|กิจกรรมของฉัน/.test(path)) {
+            const activity=parseActivityHtml(text); state.watch.push(...activity.watch); state.searches.push(...activity.searches); state.likes.push(...activity.likes);
+          }
+        } else if (lower.endsWith('.json') && (/likes\.json$/.test(lower) || /my.?activity|activity|กิจกรรมของฉัน/.test(path))) {
+          const text=await file.text();
+          if (/likes\.json$/.test(lower)) state.likes.push(...parseLikesJson(text));
+          else { const activity=parseActivityJson(text); state.watch.push(...activity.watch); state.searches.push(...activity.searches); state.likes.push(...activity.likes); }
         } else if (lower.endsWith('.csv') && (lower.includes('subscription') || lower.includes('การติดตาม'))) {
           state.subscriptions.push(...parseSubscriptions(await file.text()));
+        } else if (lower.endsWith('.csv') && /music library songs|music_library_songs|เพลงในคลัง/.test(lower)) {
+          state.music.push(...parseMusicLibrary(await file.text()));
+        } else if (lower.endsWith('.csv') && (/(^|[/\\])playlists?([/\\]|$)/.test(path) || /^playlist/i.test(lower))) {
+          const playlist=parsePlaylistCsv(await file.text(), file.name.replace(/\.csv$/i,''));
+          if (playlist) state.playlists.push(playlist);
         }
       }
-      const seen = new Set(); state.watch = state.watch.filter(x => { const k=`${x.id}|${x.date?.toISOString()||''}`; if(seen.has(k)) return false; seen.add(k); return true; });
-      const subSeen = new Set(); state.subscriptions = state.subscriptions.filter(x => !subSeen.has(x.id) && subSeen.add(x.id));
-      $('parseDot').className='dot ok'; $('parseStatus').textContent=`อ่านเสร็จแล้ว · ${files.length} ไฟล์`;
+      state.watch=dedupeEntries(state.watch,x=>`${x.id}|${x.date instanceof Date && !Number.isNaN(x.date.valueOf()) ? x.date.toISOString() : ''}`);
+      state.searches=dedupeEntries(state.searches,x=>`${x.query}|${x.date instanceof Date && !Number.isNaN(x.date.valueOf()) ? x.date.toISOString() : ''}`);
+      state.subscriptions=dedupeEntries(state.subscriptions,x=>x.id);
+      state.music=dedupeEntries(state.music,x=>x.id);
+      state.likes=dedupeEntries(state.likes,x=>x.id);
+      const playlistByTitle = new Map();
+      for (const playlist of state.playlists) {
+        if (!playlistByTitle.has(playlist.title)) playlistByTitle.set(playlist.title,new Set());
+        for (const id of playlist.ids) playlistByTitle.get(playlist.title).add(id);
+      }
+      state.playlists=[...playlistByTitle].map(([title,ids])=>({title,ids:[...ids]}));
+      state.filesRead+=files.length;
+      $('parseDot').className='dot ok'; $('parseStatus').textContent=`อ่านเสร็จแล้ว · ${state.filesRead} ไฟล์`;
       renderState();
     }
     $('takeoutFiles').addEventListener('change', e => readFiles([...e.target.files]).catch(err => { $('parseDot').className='dot warn'; $('parseStatus').textContent='อ่านไฟล์ไม่สำเร็จ'; writeLog(err.message); }));
+    $('moreTakeoutFiles').addEventListener('change', e => readFiles([...e.target.files],true).catch(err => { $('parseDot').className='dot warn'; $('parseStatus').textContent='อ่านไฟล์ไม่สำเร็จ'; writeLog(err.message); }));
     function apiHeaders(token=state.token) { return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }; }
     async function yt(path, options={}, token=state.token) {
       const r=await fetch(`https://www.googleapis.com/youtube/v3${path}`, { ...options, headers: { ...apiHeaders(token), ...(options.headers||{}) }});
@@ -343,6 +506,49 @@
       } while (pageToken);
       return ids;
     }
+    async function listSubscribedChannelIds(token) {
+      const ids=new Set(); let pageToken='';
+      do {
+        const query=`/subscriptions?part=snippet&mine=true&maxResults=50${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
+        const data=await yt(query,{},token);
+        for(const item of data.items||[]) { const id=item.snippet?.resourceId?.channelId; if(id) ids.add(id); }
+        pageToken=data.nextPageToken||'';
+      } while(pageToken);
+      return ids;
+    }
+    async function ensurePrivatePlaylist(title, token) {
+      let playlist=await findPrivatePlaylist(title,token);
+      if(playlist) { writeLog(`พบเพลย์ลิสต์ส่วนตัวชื่อเดียวกันแล้ว · ใช้รายการเดิมต่อ · ${title}`); return playlist; }
+      playlist=await yt('/playlists?part=snippet,status',{method:'POST',body:JSON.stringify({snippet:{title,description:'ย้ายจาก Google Takeout โดย YouTube Data Bridge'},status:{privacyStatus:'private'}})},token);
+      if(!playlist?.id) throw new Error('YouTube ไม่ได้ส่งรหัสเพลย์ลิสต์กลับมา');
+      writeLog(`สร้างเพลย์ลิสต์ส่วนตัวแล้ว · ${title}`);
+      return playlist;
+    }
+    function isQuotaError(error) { return /quota|dailyLimit/i.test(`${error?.reason||''} ${error?.message||''}`); }
+    async function addVideosToPlaylist(title, sourceIds, token) {
+      const playlist=await ensurePrivatePlaylist(title,token);
+      const existing=await retryPlaylistRequest(()=>listPlaylistVideoIds(playlist.id,token),'กำลังอ่านเพลย์ลิสต์');
+      const ids=[...new Set(sourceIds)].filter(id=>!existing.has(id));
+      let added=0, failed=0;
+      for(const id of ids) {
+        try {
+          await retryPlaylistRequest(()=>yt('/playlistItems?part=snippet',{method:'POST',body:JSON.stringify({snippet:{playlistId:playlist.id,resourceId:{kind:'youtube#video',videoId:id}}})},token),`กำลังเพิ่มวิดีโอ ${id}`);
+          added++;
+        } catch(error) {
+          if(isQuotaError(error)) throw error;
+          failed++; writeLog(`เพิ่มวิดีโอ ${id} ไม่สำเร็จ: ${error.message}`);
+        }
+      }
+      return { title, added, existing: existing.size, failed, total: sourceIds.length, playlistId: playlist.id };
+    }
+    async function runWriteAction(label, action) {
+      if(!state.token || state.playlistBusy) return;
+      const token=state.token;
+      state.playlistBusy=true; $('signoutBtn').disabled=true; renderState();
+      try { await action(token); }
+      catch(error) { writeLog(`${label} หยุดทำงาน: ${error.message}${isQuotaError(error) ? ' · โควตา YouTube เต็มแล้ว' : ''}`); }
+      finally { state.playlistBusy=false; $('signoutBtn').disabled=!state.token; renderState(); }
+    }
     function enableActions() { $('signoutBtn').disabled=state.playlistBusy; renderState(); }
     $('authBtn').addEventListener('click', () => {
       const clientId=$('clientId').value.trim();
@@ -356,33 +562,68 @@
     $('signoutBtn').addEventListener('click', () => { if(state.token && window.google?.accounts?.oauth2) google.accounts.oauth2.revoke(state.token, () => {}); state.token=null; $('oauthState').textContent='ยกเลิกสิทธิ์แล้ว'; $('signoutBtn').disabled=true; renderState(); writeLog('ยกเลิก OAuth token แล้ว'); });
     $('subscribeBtn').addEventListener('click', async () => {
       if(!state.token || !state.subscriptions.length) return;
-      if(!confirm(`จะส่งคำขอสมัคร ${state.subscriptions.length} ช่องไปยังบัญชีปลายทาง คุณยืนยันหรือไม่?`)) return;
-      $('subscribeBtn').disabled=true; let done=0, failed=0;
-      for (const sub of state.subscriptions) { try { await yt('/subscriptions?part=snippet',{method:'POST',body:JSON.stringify({snippet:{resourceId:{kind:'youtube#channel',channelId:sub.id}}})}); done++; writeLog(`สมัครแล้ว: ${sub.name}`); } catch(e) { failed++; writeLog(`ข้าม ${sub.name}: ${e.message}`); } }
-      writeLog(`จบการสมัครช่อง · สำเร็จ ${done} · ข้าม/ผิดพลาด ${failed}`); $('subscribeBtn').disabled=false;
+      if(!confirm(`จะตรวจช่องที่ติดตามอยู่แล้วก่อน แล้วสมัครเฉพาะช่องที่ยังขาด จากรายการ ${state.subscriptions.length} ช่อง (หากต้องสมัครครบ ใช้โควตาสูงสุดประมาณ ${state.subscriptions.length*50} หน่วย) ยืนยันหรือไม่?`)) return;
+      await runWriteAction('สมัครช่อง',async token=>{
+        const existing=await listSubscribedChannelIds(token); let done=0, skipped=0, failed=0;
+        for(const sub of state.subscriptions) {
+          if(existing.has(sub.id)) { skipped++; continue; }
+          try { await yt('/subscriptions?part=snippet',{method:'POST',body:JSON.stringify({snippet:{resourceId:{kind:'youtube#channel',channelId:sub.id}}})},token); done++; existing.add(sub.id); }
+          catch(error) { if(isQuotaError(error)) throw error; failed++; writeLog(`สมัคร ${sub.name} ไม่สำเร็จ: ${error.message}`); }
+        }
+        writeLog(`สมัครช่องเสร็จ · เพิ่ม ${done} · มีอยู่แล้ว ${skipped} · ผิดพลาด ${failed}`);
+      });
+    });
+    $('musicBtn').addEventListener('click',async()=>{
+      if(!state.token||!state.music.length) return;
+      const count=state.music.length;
+      if(!confirm(`จะสร้าง/ใช้เพลย์ลิสต์ส่วนตัว “YouTube Music · เพลงในคลังเดิม” และเพิ่มเพลง ${count} รายการ รายการที่มีอยู่แล้วจะไม่เพิ่มซ้ำ (สูงสุดประมาณ ${count*50} หน่วยสำหรับเพิ่มวิดีโอ) ยืนยันหรือไม่?`)) return;
+      await runWriteAction('ย้ายเพลง',async token=>{
+        const result=await addVideosToPlaylist('YouTube Music · เพลงในคลังเดิม',state.music.map(x=>x.id),token);
+        writeLog(`เก็บเพลงเสร็จ · เพิ่ม ${result.added} · มีอยู่แล้ว ${result.existing} · ผิดพลาด ${result.failed}`);
+      });
+    });
+    $('takeoutPlaylistsBtn').addEventListener('click',async()=>{
+      if(!state.token||!state.playlists.length) return;
+      const total=state.playlists.reduce((sum,p)=>sum+p.ids.length,0);
+      if(!confirm(`จะย้าย ${state.playlists.length} เพลย์ลิสต์ รวม ${total} วิดีโอ ไปเป็นเพลย์ลิสต์ส่วนตัวในบัญชีปลายทาง รายการที่มีอยู่แล้วจะไม่เพิ่มซ้ำ (สูงสุดประมาณ ${total*50} หน่วยสำหรับเพิ่มวิดีโอ) ยืนยันหรือไม่?`)) return;
+      await runWriteAction('ย้ายเพลย์ลิสต์',async token=>{
+        let done=0;
+        for(const source of state.playlists) {
+          const result=await addVideosToPlaylist(source.title,source.ids,token);
+          done+=result.added;
+          writeLog(`เพลย์ลิสต์ “${source.title}” · เพิ่ม ${result.added} · มีอยู่แล้ว ${result.existing} · ผิดพลาด ${result.failed}`);
+        }
+        writeLog(`ย้ายเพลย์ลิสต์เสร็จ · เพิ่มวิดีโอ ${done} รายการ`);
+      });
+    });
+    $('likesBtn').addEventListener('click',async()=>{
+      if(!state.token||!state.likes.length) return;
+      const ids=[...new Set(state.likes.map(x=>x.id))];
+      if(!confirm(`จะกดชอบวิดีโอ ${ids.length} รายการในบัญชีปลายทาง โดยตรวจรายการที่กดชอบอยู่แล้วก่อน ใช้โควตา YouTube (สูงสุดประมาณ ${ids.length*50} หน่วยสำหรับการกดชอบ) ยืนยันหรือไม่?`)) return;
+      await runWriteAction('กดชอบวิดีโอ',async token=>{
+        const alreadyLiked=new Set();
+        for(let i=0;i<ids.length;i+=50) {
+          const batch=ids.slice(i,i+50);
+          const data=await yt(`/videos/getRating?id=${batch.map(encodeURIComponent).join(',')}`,{},token);
+          for(const item of data.items||[]) if(item.rating==='like') alreadyLiked.add(item.videoId);
+        }
+        const pending=ids.filter(id=>!alreadyLiked.has(id)); let done=0, failed=0;
+        for(const id of pending) {
+          try { await yt(`/videos/rate?id=${encodeURIComponent(id)}&rating=like`,{method:'POST'},token); done++; }
+          catch(error) { if(isQuotaError(error)) throw error; failed++; writeLog(`กดชอบวิดีโอ ${id} ไม่สำเร็จ: ${error.message}`); }
+        }
+        writeLog(`กดชอบเสร็จ · เพิ่ม ${done} · กดชอบอยู่แล้ว ${alreadyLiked.size} · ผิดพลาด ${failed}`);
+      });
     });
     $('playlistBtn').addEventListener('click', async () => {
       if(!state.token || !state.watch.length) return;
       const limit=Math.min(150, Math.max(1, Number($('playlistLimit').value)||50));
-      if(!confirm(`จะสร้างเพลย์ลิสต์ส่วนตัวและเพิ่มวิดีโอ ${limit} รายการ (ไม่ใช่ Watch history) ยืนยันหรือไม่?`)) return;
-      const token=state.token;
+      if(!confirm(`จะสร้างเพลย์ลิสต์ส่วนตัวและเพิ่มวิดีโอสูงสุด ${Math.min(limit,new Set(state.watch.map(x=>x.id)).size)} รายการ (ไม่ใช่ Watch history; สูงสุดประมาณ ${Math.min(limit,new Set(state.watch.map(x=>x.id)).size)*50} หน่วยสำหรับเพิ่มวิดีโอ) ยืนยันหรือไม่?`)) return;
       const watchIds=[...new Set(state.watch.map(x=>x.id))].slice(0,limit);
-      state.playlistBusy=true; $('signoutBtn').disabled=true; renderState();
-      try {
-        const title='ประวัติการดูเดิม · เก็บจาก Takeout';
-        let playlist=await findPrivatePlaylist(title, token);
-        if (playlist) writeLog(`พบเพลย์ลิสต์เดิมแล้ว · ใช้ต่อโดยไม่สร้างซ้ำ · ${playlist.id}`);
-        else {
-          playlist=await yt('/playlists?part=snippet,status',{method:'POST',body:JSON.stringify({snippet:{title,description:'สร้างโดย YouTube Data Bridge จาก Google Takeout ของเจ้าของบัญชี',},status:{privacyStatus:'private'}})}, token);
-          writeLog(`สร้างเพลย์ลิสต์แล้ว · กำลังรอ YouTube เตรียมรายการ · ${playlist.id}`);
-        }
-        if(!playlist?.id) throw new Error('YouTube ไม่ได้ส่งรหัสเพลย์ลิสต์กลับมา');
-        const existing=await retryPlaylistRequest(() => listPlaylistVideoIds(playlist.id, token), 'กำลังอ่านเพลย์ลิสต์');
-        let done=0; const ids=watchIds.filter(id=>!existing.has(id));
-        for(const id of ids){ try { await retryPlaylistRequest(() => yt('/playlistItems?part=snippet',{method:'POST',body:JSON.stringify({snippet:{playlistId:playlist.id,resourceId:{kind:'youtube#video',videoId:id}}})}, token), `กำลังเพิ่มวิดีโอ ${id}`); done++; writeLog(`เพิ่มแล้ว ${done}/${ids.length}: ${id}`); } catch(e){ writeLog(`เพิ่มวิดีโอ ${id} ไม่สำเร็จ: ${e.message}`); } }
-        writeLog(`เสร็จแล้ว · เพิ่มใหม่ ${done} รายการ · มีอยู่เดิม ${existing.size} รายการ · ${playlist.id}`);
-      } catch(e) { writeLog('สร้างเพลย์ลิสต์ไม่สำเร็จ: '+e.message); }
-      finally { state.playlistBusy=false; $('signoutBtn').disabled=!state.token; renderState(); }
+      await runWriteAction('เก็บประวัติการดู',async token=>{
+        const result=await addVideosToPlaylist('ประวัติการดูเดิม · เก็บจาก Takeout',watchIds,token);
+        writeLog(`เก็บวิดีโอจากประวัติการดูเสร็จ · เพิ่ม ${result.added} · มีอยู่แล้ว ${result.existing} · ผิดพลาด ${result.failed}`);
+      });
     });
   </script>
 </body>
